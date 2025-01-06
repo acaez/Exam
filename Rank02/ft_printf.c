@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <unistd.h>
-#include <starg.h>
+#include <stdarg.h>
 
 static void	ft_putstr(const char *s, int *count)
 {
 	if (!s)
-		s = "(NULL)"
+		s = "(NULL)";
 	while (*s)
 	{
 		write(1, s++, 1);
@@ -26,7 +26,7 @@ static void	ft_putnbr(int n, int *count)
 	{
 		write(1, "-", 1);
 		(*count)++;
-		n = -n
+		n = -n;
 	}
 	if (n > 9)
 		ft_putnbr(n / 10, count);
@@ -73,10 +73,20 @@ int	ft_printf(const char *format, ...)
 			write(1, format, 1);
 			count++;
 		}
-		format++
+		format++;
 
 	}
 	va_end(args);
 	return count;
 }
 
+int	main(void)
+{
+	char	str[] = "Sandrine";
+	int	nbr;
+	unsigned int exa;
+
+	nbr = 19;
+	exa = 25;
+	ft_printf("hello %s\n%d\n%x\n", str, nbr, exa);
+}
