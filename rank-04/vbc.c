@@ -1,70 +1,66 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
+#include "vbc.h"
 
-static char	*g_expr;
-static int	g_pos;
+static char	*exp;
+static int	pos;
 
-static void error(const char *msg)
+void	utils(int action, const char *msg, char c)
 {
-	if (msg)
-		printf("%s\n", msg);
-	exit(1);
+	if (action == 0)
+	{
+		while (exp[pos] == ' ')
+			pos++;
+	}
+	else if (action == 1)
+	{
+		if (msg)
+			printf("%s\n", msg);
+		exit(1);
+	}
+	else if (action == 2)
+	{
+		printf("Unexpected token '%c'\n", c);
+		exit(1);
+	}
 }
 
-static void	unexpected_token(char c)
-{
-	printf("Unexpected token '%c'\n", c);
-	exit(1);
-}
-
-static void	skip_spaces(void)
-{
-	while (g_expr[g_pos] == ' ')
-		g_pos++;
-}
-
-static int	parse_expression(void);
-
-static int	parse_factor(void)
+int	parse_factor(void)
 {
 	int	result;
 
-	skip_spaces();
-	if (!g_expr[g_pos])
-		error("Unexpected end of input");
-	if (isdigit(g_expr[g_pos]))
+	utils(0, NULL, 0);
+	if (!exp[pos])
+		utils(1, "Unexpected end of input", 0);
+	if (isdigit(exp[pos]))
 	{
-		result = g_expr[g_pos] - '0';
-		g_pos++;
+		result = exp[pos] - '0';
+		pos++;
 		return result;
 	}
-	else if (g_expr[g_pos] == '(')
+	else if (exp[pos] == '(')
 	{
-		g_pos++;
-		result = parse_expression();
-		skip_spaces();
-		if (g_expr[g_pos] != ')')
-			error("Unexpected end of input");
-		g_pos++;
+		pos++;
+		result = handle_plus();
+		utils(0, NULL, 0);
+		if (exp[pos] != ')')
+			utils(1, "Unexpected end of input", 0);
+		pos++;
 		return result;
 	}
 	else
-		unexpected_token(g_expr[g_pos]);
+		utils(2, NULL, exp[pos]);
 	return 0;
 }
 
-static int	parse_term(void)
+int	handle_mult(void)
 {
 	int result = parse_factor();
 
 	while (1)
 	{
-		skip_spaces();
-		if (g_expr[g_pos] == '*')
+		utils(0, NULL, 0);
+		if (exp[pos] == '*')
 		{
-			g_pos++;
+			pos++;
 			result *= parse_factor();
 		}
 		else
@@ -73,17 +69,17 @@ static int	parse_term(void)
 	return result;
 }
 
-static int	parse_expression(void)
+int	handle_plus(void)
 {
-	int result = parse_term();
+	int result = handle_mult();
 
 	while (1)
 	{
-		skip_spaces();
-		if (g_expr[g_pos] == '+')
+		utils(0, NULL, 0);
+		if (exp[pos] == '+')
 		{
-			g_pos++;
-			result += parse_term();
+			pos++;
+			result += handle_mult();
 		}
 		else
 			break;
@@ -97,14 +93,14 @@ int main(int argc, char **argv)
 
 	if (argc != 2)
 		exit(1);
-	g_expr = argv[1];
-	g_pos = 0;
-	result = parse_expression();
-	skip_spaces();
-	if (g_expr[g_pos] == ')')
-		unexpected_token(')');
-	if (g_expr[g_pos])
-		unexpected_token(g_expr[g_pos]);
+	exp = argv[1];
+	pos = 0;
+	result = handle_plus();
+	utils(0, NULL, 0);
+	if (exp[pos] == ')')
+		utils(2, NULL, ')');
+	if (exp[pos])
+		utils(2, NULL, exp[pos]);
 	printf("%d\n", result);
 	return 0;
 }
